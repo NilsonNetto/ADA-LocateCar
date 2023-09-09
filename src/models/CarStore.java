@@ -2,6 +2,8 @@ package models;
 
 import util.ConsoleUIHelper;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,26 +32,30 @@ public class CarStore {
                 "Inserir cliente",
                 "Nova reserva",
                 "Listar reservas",
+                "Pesquisar Carro",
+                "Retornar carro",
                 "Sair");
 
         switch (option){
             case 0:
-                System.out.println("car");
                 insertCar();
                 break;
             case 1:
-                System.out.println("cliente");
                 insertClient();
                 break;
             case 2:
-                System.out.println("cliente");
                 rentCar();
                 break;
             case 3:
-                System.out.println("cliente");
                 listActiveRentals();
                 break;
             case 4:
+                searchCar();
+                break;
+            case 5:
+                returnCar();
+                break;
+            case 6:
                 return false;
         }
         return true;
@@ -76,7 +82,8 @@ public class CarStore {
                 selectedCarType = CarType.SUV;
                 break;
             default:
-                ConsoleUIHelper.showMessageAndWait("Tipo não disponível!",5);
+                ConsoleUIHelper.showMessageAndWait("Tipo não disponível! Carro não cadastrado",5);
+                return;
         }
 
         cars.add(new Car(licensePlate, name, selectedCarType));
@@ -103,14 +110,15 @@ public class CarStore {
                 selectedClientType = ClientType.CNPJ;
                 break;
             default:
-                ConsoleUIHelper.showMessageAndWait("Tipo não disponível!",5);
+                ConsoleUIHelper.showMessageAndWait("Tipo não disponível! Cliente não cadastrado",5);
+                return;
         }
 
         clients.add(new Client(name, selectedClientType, document));
     }
 
     public Car selectCar (){
-        ConsoleUIHelper.drawHeader("Lista de carros", 24);
+        ConsoleUIHelper.drawHeader("Lista de carros", 42);
         for(int i = 0; i < cars.size(); i++){
             System.out.println( i + " - " + cars.get(i).getName());
         }
@@ -118,8 +126,17 @@ public class CarStore {
         return this.cars.get(select);
     }
 
+    public Car selectCar (List<Car> carsList){
+        ConsoleUIHelper.drawHeader("Lista de carros", 42);
+        for(int i = 0; i < carsList.size(); i++){
+            System.out.println( i + " - " + carsList.get(i).getName());
+        }
+        int select = ConsoleUIHelper.askNumber("Digite o número do carro selecionado").intValue();
+        return carsList.get(select);
+    }
+
     public Client selectClients(){
-        ConsoleUIHelper.drawHeader("Lista de clientes", 24);
+        ConsoleUIHelper.drawHeader("Lista de clientes", 42);
         for(int i = 0; i < clients.size(); i++){
             System.out.println( i + " - " + clients.get(i).getName());
         }
@@ -129,10 +146,26 @@ public class CarStore {
     public void listActiveRentals(){
         for(int i = 0; i < rentals.size(); i++){
             Rental rental = rentals.get(i);
-            if(rental.getReturnDate() != null){
-                System.out.println( i + " - " + rental.getRenter().getName() + " - " + rental.getRentedCar().getLicensePlate());
+            if(rental.getReturnDate() == null){
+                System.out.println( i + " - " + rental.getRenter().getName() + " - " + rental.getRentedCar().getName() + " - " + rental.getInitialDate());
             }
         }
+        ConsoleUIHelper.askSimpleInput("Pressione qualquer tecla para sair");
+    }
+    public Rental selectActiveRental(){
+        List<Rental> activeRentalList = new ArrayList<>();
+        for( Rental rental : rentals){
+            if(rental.getReturnDate() == null){
+                activeRentalList.add(rental);
+            }
+        }
+        ConsoleUIHelper.drawHeader("Lista de reservas", 42);
+        for(int i = 0; i < activeRentalList.size(); i++){
+            Rental rental = activeRentalList.get(i);
+            System.out.println( i + " - " + rental.getRenter().getName() + " - " + rental.getRentedCar().getName() + " - " + rental.getInitialDate());
+        }
+        int select = ConsoleUIHelper.askNumber("Digite o número da reserva").intValue();
+        return activeRentalList.get(select);
     }
 
     public void rentCar(){
@@ -140,12 +173,45 @@ public class CarStore {
         Client selectedClient = selectClients();
 
         if(selectedCar.isLocated()){
-            System.out.println("Este carro já está locado!");
+            ConsoleUIHelper.showMessageAndWait("Este carro já está locado!", 5);
         } else {
             selectedCar.setLocated(true);
             rentals.add(new Rental(selectedCar,selectedClient));
-            System.out.println("Carro locado com sucesso!");
+            ConsoleUIHelper.showMessageAndWait("Carro locado com sucesso!",5);
         }
     }
 
+    public void searchCar(){
+        String search = ConsoleUIHelper.askSimpleInput("Insira o nome do carro");
+        List<Car> carList = new ArrayList<>();
+        for (Car car : cars){
+            if(car.getName().contains(search)) {
+                carList.add(car);
+            }
+        }
+        if(carList.size() == 0 ){
+            ConsoleUIHelper.showMessageAndWait("Nenhum carro encontrado!",5);
+        } else {
+            Car selectedCar = selectCar(carList);
+            showCarDetails(selectedCar);
+
+        }
+    }
+
+    public void showCarDetails (Car car){
+        System.out.println("Placa: " + car.getLicensePlate());
+        System.out.println("Nome: " + car.getName());
+        System.out.println("Tipo: " + car.getCarType());
+        System.out.println("Alugado: " + car.isLocated());
+        ConsoleUIHelper.askSimpleInput("Pressione qualquer tecla para sair");
+    }
+
+    public void returnCar (){
+        Rental rental = selectActiveRental();
+        rental.setReturnDate(LocalDateTime.now());
+        rental.getRentedCar().setLocated(false);
+        long secondsRented = Duration.between(rental.getInitialDate(), rental.getReturnDate()).toSeconds();
+        int daysRented = (int)Math.floor( secondsRented / 86400.0) + 1;
+        System.out.println("Tempo alugado: " + daysRented + " dias");
+    }
 }

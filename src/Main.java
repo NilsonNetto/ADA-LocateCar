@@ -8,16 +8,5 @@ public class Main {
         CarStore nettoStore = new CarStore(initialCar);
 
         nettoStore.init();
-
-
-        //nettoStore.insertCar();
-
-        //nettoStore.insertClient();
-
-
-        //Car selectedCar = nettoStore.selectCar();
-        //Client selectedClient = nettoStore.selectClients();
-
-        //nettoStore.listActiveRentals();
     }
 }
