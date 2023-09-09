@@ -2,13 +2,13 @@ package models;
 
 import java.time.LocalDateTime;
 
-public class rental {
+public class Rental {
     private Car rentedCar;
     private Client renter;
     private LocalDateTime initialDate;
     private LocalDateTime returnDate;
 
-    public rental(Car rentedCar, Client renter) {
+    public Rental(Car rentedCar, Client renter) {
         this.rentedCar = rentedCar;
         this.renter = renter;
         this.initialDate = LocalDateTime.now();
