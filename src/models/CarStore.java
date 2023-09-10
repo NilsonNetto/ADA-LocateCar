@@ -29,11 +29,13 @@ public class CarStore {
     public boolean storeMenu (){
         int option = ConsoleUIHelper.askChooseOption("Escolha uma opção",
                 "Inserir Carro",
-                "Inserir cliente",
-                "Nova reserva",
-                "Listar reservas",
+                "Atualizar Carro",
                 "Pesquisar Carro",
-                "Retornar carro",
+                "Inserir Cliente",
+                "Atualizar Cliente",
+                "Alugar Carro",
+                "Retornar Carro",
+                "Listar Reservas",
                 "Sair");
 
         switch (option){
@@ -41,29 +43,35 @@ public class CarStore {
                 insertCar();
                 break;
             case 1:
-                insertClient();
+                updateCar();
                 break;
             case 2:
+                searchCar();
+                break;
+            case 3:
+                insertClient();
+                break;
+            case 4 :
+                updateClient();
+                break;
+            case 5:
                 if(cars.size() == 0 || clients.size() == 0){
                     ConsoleUIHelper.showMessageAndWait("Sem clientes cadastrados!", 5);
                     break;
                 }
                 rentCar();
                 break;
-            case 3:
+            case 6:
+                returnCar();
+                break;
+            case 7:
                 if(rentals.size() == 0){
                     ConsoleUIHelper.showMessageAndWait("Sem reservas ativas!", 5);
                     break;
                 }
                 listActiveRentals();
                 break;
-            case 4:
-                searchCar();
-                break;
-            case 5:
-                returnCar();
-                break;
-            case 6:
+            case 8:
                 return false;
         }
         return true;
@@ -71,7 +79,7 @@ public class CarStore {
     public void insertCar(){
         String licensePlate = ConsoleUIHelper.askNoEmptyInput("Insira a placa do carro:",0);
         for (Car car : cars){
-            if(car.getLicensePlate().equals(licensePlate)) {
+            if(car.getLicensePlate().equalsIgnoreCase(licensePlate)) {
                 ConsoleUIHelper.showMessageAndWait("Carro já registrado!",5);
                 return;
             }
@@ -101,7 +109,7 @@ public class CarStore {
         String document = ConsoleUIHelper.askNoEmptyInput("Insira o documento do cliente:", 0);
         if(clients.size() != 0) {
             for (Client client : clients) {
-                if (client.getDocument().equals(document)) {
+                if (client.getDocument().equalsIgnoreCase(document)) {
                     ConsoleUIHelper.showMessageAndWait("Cliente já registrado!", 5);
                     return;
                 }
@@ -194,7 +202,7 @@ public class CarStore {
         String search = ConsoleUIHelper.askSimpleInput("Insira o nome do carro");
         List<Car> carList = new ArrayList<>();
         for (Car car : cars){
-            if(car.getName().contains(search)) {
+            if(car.getName().toUpperCase().contains(search.toUpperCase())) {
                 carList.add(car);
             }
         }
@@ -223,5 +231,77 @@ public class CarStore {
         rental.setReturnLocal(returnLocal);
         double rentedPrice = rental.getValue();
         ConsoleUIHelper.showMessageAndWait("Valor final do aluguel: R$" + rentedPrice,5);
+    }
+
+    public void updateClient(){
+        if(clients.size() == 0){
+            ConsoleUIHelper.showMessageAndWait("Não há clientes registrados!", 5);
+            return;
+        }
+        Client clientToUpdate = selectClients();
+        String document = ConsoleUIHelper.askNoEmptyInput("Insira o documento do cliente:", 0);
+        for (Client client : clients) {
+            if(client == clientToUpdate){
+                continue;
+            }
+            if (client.getDocument().equalsIgnoreCase(document)) {
+                ConsoleUIHelper.showMessageAndWait("Documento já registrado para outro cliente!", 5);
+                return;
+            }
+        }
+        String name = ConsoleUIHelper.askNoEmptyInput("Insira o nome do cliente:", 0);
+        int option = ConsoleUIHelper.askChooseOption("Selecione o tipo de cliente:", ClientType.CPF.name(),ClientType.CNPJ.name());
+        ClientType selectedClientType = ClientType.CPF;
+        switch (option){
+            case 0:
+                selectedClientType = ClientType.CPF;
+                break;
+            case 1:
+                selectedClientType = ClientType.CNPJ;
+                break;
+            default:
+                ConsoleUIHelper.showMessageAndWait("Tipo não disponível! Cliente não atualizado",5);
+                return;
+        }
+        clientToUpdate.setName(name);
+        clientToUpdate.setDocument(document);
+        clientToUpdate.setClientType(selectedClientType);
+        ConsoleUIHelper.showMessageAndWait("Cliente atualizado com sucesso!",5);
+    }
+
+    public void updateCar(){
+        Car carToUpdate = selectCar();
+        String licensePlate = ConsoleUIHelper.askNoEmptyInput("Insira a placa do carro:",0);
+        for (Car car : cars){
+            if(car == carToUpdate){
+                continue;
+            }
+            if(car.getLicensePlate().equalsIgnoreCase(licensePlate)) {
+                ConsoleUIHelper.showMessageAndWait("Placa já registrada para outro carro!",5);
+                return;
+            }
+        }
+        String name = ConsoleUIHelper.askNoEmptyInput("Insira o nome do carro:", 0);
+        int option = ConsoleUIHelper.askChooseOption("Selecione o tipo do carro:", CarType.SMALL.name(),CarType.MEDIUM.name(),CarType.SUV.name());
+        CarType selectedCarType = CarType.SUV;
+        switch (option){
+            case 0:
+                selectedCarType = CarType.SMALL;
+                break;
+            case 1:
+                selectedCarType = CarType.MEDIUM;
+                break;
+            case 2:
+                selectedCarType = CarType.SUV;
+                break;
+            default:
+                ConsoleUIHelper.showMessageAndWait("Tipo não disponível! Carro não atualizado",5);
+                return;
+        }
+
+        carToUpdate.setLicensePlate(licensePlate);
+        carToUpdate.setName(name);
+        carToUpdate.setCarType(selectedCarType);
+        ConsoleUIHelper.showMessageAndWait("Carro atualizado com sucesso!",5);
     }
 }
