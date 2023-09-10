@@ -44,9 +44,17 @@ public class CarStore {
                 insertClient();
                 break;
             case 2:
+                if(cars.size() == 0 || clients.size() == 0){
+                    ConsoleUIHelper.showMessageAndWait("Sem clientes cadastrados!", 5);
+                    break;
+                }
                 rentCar();
                 break;
             case 3:
+                if(rentals.size() == 0){
+                    ConsoleUIHelper.showMessageAndWait("Sem reservas ativas!", 5);
+                    break;
+                }
                 listActiveRentals();
                 break;
             case 4:
@@ -171,12 +179,13 @@ public class CarStore {
     public void rentCar(){
         Car selectedCar = selectCar();
         Client selectedClient = selectClients();
+        String locateLocal = ConsoleUIHelper.askNoEmptyInput("Insira o local de locação:",0);
 
         if(selectedCar.isLocated()){
             ConsoleUIHelper.showMessageAndWait("Este carro já está locado!", 5);
         } else {
             selectedCar.setLocated(true);
-            rentals.add(new Rental(selectedCar,selectedClient));
+            rentals.add(new Rental(selectedCar,selectedClient, locateLocal));
             ConsoleUIHelper.showMessageAndWait("Carro locado com sucesso!",5);
         }
     }
@@ -208,10 +217,11 @@ public class CarStore {
 
     public void returnCar (){
         Rental rental = selectActiveRental();
+        String returnLocal = ConsoleUIHelper.askNoEmptyInput("Insira o local de devolução:", 0);
         rental.setReturnDate(LocalDateTime.now());
         rental.getRentedCar().setLocated(false);
-        long secondsRented = Duration.between(rental.getInitialDate(), rental.getReturnDate()).toSeconds();
-        int daysRented = (int)Math.floor( secondsRented / 86400.0) + 1;
-        System.out.println("Tempo alugado: " + daysRented + " dias");
+        rental.setReturnLocal(returnLocal);
+        double rentedPrice = rental.getValue();
+        ConsoleUIHelper.showMessageAndWait("Valor final do aluguel: R$" + rentedPrice,5);
     }
 }
